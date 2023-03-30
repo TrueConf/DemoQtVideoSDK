@@ -23,5 +23,8 @@ private:
     Ui::Dialog *ui;
     VideoSDK m_sdk {this};
     State m_state;
+    QString m_room_ip;
+    int m_room_port;
+    QString m_pin;
 };
 #endif // DIALOG_H
