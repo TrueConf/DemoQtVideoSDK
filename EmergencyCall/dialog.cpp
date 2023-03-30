@@ -1,7 +1,7 @@
 #include "dialog.h"
 #include "ui_dialog.h"
-#include <QDesktopWidget>
 #include <QMovie>
+#include <QScreen>
 #include <QDebug>
 
 Dialog::Dialog(QWidget *parent)
@@ -16,8 +16,7 @@ Dialog::Dialog(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
     /* Set UI position */
-    QDesktopWidget desktop_widget;
-    QRect rcScreen = desktop_widget.availableGeometry(desktop_widget.primaryScreen());
+    QRect rcScreen = QGuiApplication::primaryScreen()->availableGeometry();
 
     this->move(rcScreen.width() - this->width(), rcScreen.height() - this->height());
 
@@ -30,19 +29,30 @@ Dialog::Dialog(QWidget *parent)
     });
     movie->start();
 
-    /*  */
-    connect(&m_sdk, &VideoSDK::change_state, [=](State state){
+    m_sdk.setPrintUnprocessedDataEnabled(false); //to reduce debug output
+
+    connect(&m_sdk, &VideoSDK::stateChanged, [=](State state) {
         m_state = state;
-        if(m_state == State::conference || m_state == State::wait)
+
+        ui->pushButton->setEnabled(m_state != State::connect);
+        if(m_state == State::conference || m_state == State::wait) {
             m_sdk.changeWindowState(WindowState::maximized, true);
-        else
+        }
+        else if(m_state == State::none || m_state == State::connect) {
+            //No sense in trying to change window state of app that is disconnected.
+            //Just to keep requests queue clearer and reduce debug output.
+        }
+        else {
             m_sdk.changeWindowState(WindowState::minimized, false);
+        }
     });
 
     /* When Room or VideoSDK have been started on local machine */
-    QString room_ip = "127.0.0.1";
+    m_room_ip = "127.0.0.1";
+    m_room_port = 80;
+    m_pin = "123";
 
-    m_sdk.open_session(room_ip, "123");
+    m_sdk.open_session(m_room_ip, m_room_port, m_pin);
 }
 
 Dialog::~Dialog()
@@ -52,5 +62,9 @@ Dialog::~Dialog()
 
 void Dialog::on_pushButton_clicked()
 {
+    if(!m_sdk.started()) {
+        m_sdk.open_session(m_room_ip, m_room_port, m_pin);
+    }
+
     m_sdk.call("echotest@trueconf.com");
 }

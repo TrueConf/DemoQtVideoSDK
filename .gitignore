@@ -1,1 +1,11 @@
 DemoQtVideoSDK.pro.user
+.qtc_clangd/*
+EmergencyCall/debug/*
+EmergencyCall/release/*
+just_call/debug/*
+just_call/release/*
+SignalsAndState/debug/*
+SignalsAndState/release/*
+Makefile*
+.qmake.stash
+ui_*

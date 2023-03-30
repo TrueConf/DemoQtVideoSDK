@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_sdk, SIGNAL(opened()), this, SLOT(on_start()));
     connect(m_sdk, SIGNAL(closed()), this, SLOT(on_stop()));
     connect(m_sdk, SIGNAL(error(QString)), this, SLOT(on_error(QString)));
-    connect(m_sdk, SIGNAL(change_state(State)), this, SLOT(on_change_state(State)));
+    connect(m_sdk, SIGNAL(stateChanged(State)), this, SLOT(on_change_state(State)));
     connect(m_sdk, SIGNAL(socketReceived(QString)), this, SLOT(on_socketReceived(QString)));
 
     connect(m_sdk->Events(), SIGNAL(appStateChanged(QJsonObject)), this, SLOT(appStateChanged(QJsonObject)));
@@ -142,7 +142,8 @@ void MainWindow::appStateChanged(const QJsonObject &response)
 
 void MainWindow::on_openButton_clicked()
 {
-    m_sdk->open_session(ui->edIP->text(), ui->edPIN->text());
+    auto pin = ui->edPIN->text().isEmpty() ? QString() : ui->edPIN->text();
+    m_sdk->open_session(ui->edIP->text(), ui->spinBoxPort->value(), pin);
 }
 
 
